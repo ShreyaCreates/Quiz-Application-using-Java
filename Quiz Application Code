@@ -1,0 +1,228 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.Random;
+
+public class MultiLangQuizGame extends JFrame {
+    private String playerName;
+    private String selectedLang;
+    private int currentQuestion = 0;
+    private int score = 0;
+    private int timeLeft = 20;
+    private javax.swing.Timer timer;
+
+    private String[][] javaQ = {
+            {"Which keyword is used to inherit a class in Java?", "super", "this", "extends", "implements", "extends"},
+            {"Which of these is not OOPs concept in Java?", "Encapsulation", "Polymorphism", "Compilation", "Inheritance", "Compilation"},
+            {"Which method is entry point of Java program?", "start()", "main()", "run()", "init()", "main()"},
+            {"Which operator is used to allocate memory for object?", "malloc", "alloc", "new", "create", "new"},
+            {"Which package contains Swing classes?", "java.awt", "javax.swing", "java.io", "java.util", "javax.swing"}
+    };
+
+    private String[][] pythonQ = {
+            {"Which keyword defines a function in Python?", "def", "func", "function", "define", "def"},
+            {"Which of these is immutable?", "List", "Set", "Dictionary", "Tuple", "Tuple"},
+            {"What is output of 2**3 in Python?", "6", "8", "9", "16", "8"},
+            {"Which library is used for data analysis?", "numpy", "pandas", "matplotlib", "scipy", "pandas"},
+            {"Which symbol is used for comments?", "#", "//", "/* */", "--", "#"}
+    };
+
+    private String[][] cQ = {
+            {"Which header file is needed for printf()?", "stdio.h", "conio.h", "stdlib.h", "string.h", "stdio.h"},
+            {"Which is not a storage class in C?", "auto", "register", "static", "public", "public"},
+            {"Which loop executes at least once?", "for", "while", "do-while", "foreach", "do-while"},
+            {"Which operator is used for address-of?", "&", "*", "%", "@", "&"},
+            {"Which function is used to allocate memory?", "malloc()", "alloc()", "memory()", "calloc()", "malloc()"}
+    };
+
+    private String[][] jsQ = {
+            {"Which keyword is used to declare a variable in JavaScript?", "var", "int", "let", "dim", "let"},
+            {"Which method converts JSON to JavaScript object?", "JSON.stringify()", "JSON.parse()", "JSON.convert()", "JSON.toObject()", "JSON.parse()"},
+            {"Which symbol is used for comments?", "//", "#", "/* */", "<!-- -->", "//"},
+            {"Which operator is used for strict equality?", "==", "=", "===", "!=", "==="},
+            {"Which of these is not a JavaScript data type?", "Number", "Boolean", "Float", "String", "Float"}
+    };
+
+    private String[][] questions;
+
+    public MultiLangQuizGame() {
+        setTitle("Multi-Language Quiz Game");
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+        showNamePage();
+    }
+
+    class PatternPanel extends JPanel {
+        private Color c1, c2;
+        PatternPanel(Color c1, Color c2) { this.c1=c1; this.c2=c2; }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d=(Graphics2D)g;
+            GradientPaint gp=new GradientPaint(0,0,c1,getWidth(),getHeight(),c2);
+            g2d.setPaint(gp);
+            g2d.fillRect(0,0,getWidth(),getHeight());
+
+            g2d.setColor(new Color(255,255,255,30));
+            for(int i=0;i<getWidth();i+=60) g2d.fillRect(i,0,15,getHeight());
+            g2d.setColor(new Color(255,255,255,20));
+            for(int i=50;i<getWidth();i+=200)
+                for(int j=50;j<getHeight();j+=200) g2d.fillOval(i,j,60,60);
+        }
+    }
+
+    class ConfettiPanel extends JPanel {
+        private int[] x,y,speed,size; private Color[] colors={Color.RED,Color.YELLOW,Color.GREEN,Color.CYAN,Color.MAGENTA,Color.ORANGE,Color.PINK};
+        private Random rand=new Random();
+        ConfettiPanel(int count,int width,int height) {
+            x=new int[count]; y=new int[count]; speed=new int[count]; size=new int[count];
+            for(int i=0;i<count;i++){
+                x[i]=rand.nextInt(width); y[i]=rand.nextInt(height);
+                speed[i]=3+rand.nextInt(5); size[i]=8+rand.nextInt(12);
+            }
+            new javax.swing.Timer(40,e->{for(int i=0;i<count;i++){y[i]+=speed[i]; if(y[i]>getHeight()){y[i]=0; x[i]=rand.nextInt(getWidth());}} repaint();}).start();
+        }
+        @Override protected void paintComponent(Graphics g){
+            super.paintComponent(g);
+            for(int i=0;i<x.length;i++){ g.setColor(colors[i%colors.length]); g.fillOval(x[i],y[i],size[i],size[i]);}
+        }
+    }
+
+    void showNamePage(){
+        currentQuestion=0; score=0;
+        getContentPane().removeAll();
+        PatternPanel panel=new PatternPanel(new Color(25,25,112),new Color(70,130,180));
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc=new GridBagConstraints(); gbc.insets=new Insets(20,20,20,20);
+
+        JLabel label=new JLabel("Enter Your Name:",SwingConstants.CENTER);
+        label.setFont(new Font("Consolas",Font.BOLD,50)); label.setForeground(Color.CYAN);
+        gbc.gridx=0; gbc.gridy=0; panel.add(label,gbc);
+
+        JTextField nameField=new JTextField(20); nameField.setFont(new Font("Consolas",Font.PLAIN,30));
+        gbc.gridy=1; panel.add(nameField,gbc);
+
+        JButton nextBtn=new JButton("Next"); styleButton(nextBtn); nextBtn.setFont(new Font("Consolas",Font.BOLD,30));
+        gbc.gridy=2; nextBtn.addActionListener(e->{playerName=nameField.getText().trim(); if(playerName.isEmpty()) JOptionPane.showMessageDialog(this,"Please enter your name!"); else showLanguagePage();});
+        panel.add(nextBtn,gbc);
+
+        add(panel); revalidate(); repaint();
+    }
+
+    void showLanguagePage() {
+        getContentPane().removeAll();
+        PatternPanel panel=new PatternPanel(new Color(25,25,112),new Color(70,130,180));
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc=new GridBagConstraints(); gbc.insets=new Insets(20,20,20,20);
+
+        JLabel label=new JLabel("Choose Your Quiz Language:",SwingConstants.CENTER);
+        label.setFont(new Font("Consolas",Font.BOLD,50)); label.setForeground(Color.ORANGE);
+        gbc.gridx=0; gbc.gridy=0; gbc.gridwidth=4; panel.add(label,gbc);
+
+        JButton javaBtn=new JButton("Java"); styleButton(javaBtn); javaBtn.setFont(new Font("Consolas",Font.BOLD,30));
+        javaBtn.addActionListener(e->{selectedLang="Java"; questions=javaQ; showWelcomePage();}); gbc.gridwidth=1; gbc.gridy=1; gbc.gridx=0; panel.add(javaBtn,gbc);
+
+        JButton pyBtn=new JButton("Python"); styleButton(pyBtn); pyBtn.setFont(new Font("Consolas",Font.BOLD,30));
+        pyBtn.addActionListener(e->{selectedLang="Python"; questions=pythonQ; showWelcomePage();}); gbc.gridx=1; panel.add(pyBtn,gbc);
+
+        JButton cBtn=new JButton("C"); styleButton(cBtn); cBtn.setFont(new Font("Consolas",Font.BOLD,30));
+        cBtn.addActionListener(e->{selectedLang="C"; questions=cQ; showWelcomePage();}); gbc.gridx=2; panel.add(cBtn,gbc);
+
+        JButton jsBtn=new JButton("JavaScript"); styleButton(jsBtn); jsBtn.setFont(new Font("Consolas",Font.BOLD,30));
+        jsBtn.addActionListener(e->{selectedLang="JavaScript"; questions=jsQ; showWelcomePage();}); gbc.gridx=3; panel.add(jsBtn,gbc);
+
+        add(panel); revalidate(); repaint();
+    }
+
+    void showWelcomePage() {
+        getContentPane().removeAll();
+        PatternPanel panel=new PatternPanel(new Color(25,25,112),new Color(70,130,180));
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc=new GridBagConstraints(); gbc.insets=new Insets(20,20,20,20);
+
+        JLabel title=new JLabel("Welcome to the "+selectedLang+" Quiz",SwingConstants.CENTER);
+        title.setFont(new Font("Consolas",Font.BOLD,50)); title.setForeground(Color.CYAN);
+        gbc.gridx=0; gbc.gridy=0; panel.add(title,gbc);
+
+        new javax.swing.Timer(500,e->title.setForeground(title.getForeground()==Color.CYAN?Color.MAGENTA:Color.CYAN)).start();
+
+        JButton startBtn=new JButton("Start Quiz"); styleButton(startBtn); startBtn.setFont(new Font("Consolas",Font.BOLD,35));
+        gbc.gridy=1; startBtn.addActionListener(e->loadQuizScreen()); panel.add(startBtn,gbc);
+
+        add(panel); revalidate(); repaint();
+    }
+
+    void loadQuizScreen() {
+        if(currentQuestion >= questions.length){ showResult(); return; }
+        if(timer != null && timer.isRunning()) timer.stop();
+        timeLeft = 20;
+
+        getContentPane().removeAll();
+        PatternPanel panel = new PatternPanel(new Color(25,25,112), new Color(70,130,180));
+        panel.setLayout(null);
+
+        JLabel progressLabel = new JLabel("Question: " + (currentQuestion + 1) + "/" + questions.length);
+        progressLabel.setFont(new Font("Consolas", Font.BOLD, 25));
+        progressLabel.setForeground(Color.WHITE);
+        progressLabel.setBounds(50, 30, 300, 30);
+        panel.add(progressLabel);
+
+        JPanel timerPanel = new JPanel();
+        timerPanel.setBounds(1200, 20, 250, 50);
+        timerPanel.setBackground(new Color(0,0,0,200));
+        timerPanel.setLayout(new FlowLayout(FlowLayout.CENTER,10,5));
+        timerPanel.setBorder(BorderFactory.createLineBorder(Color.YELLOW,2));
+
+        JLabel timerText = new JLabel("Timer: "); timerText.setFont(new Font("Consolas",Font.BOLD,24)); timerText.setForeground(Color.WHITE); timerPanel.add(timerText);
+        JLabel timerLabel = new JLabel(timeLeft + "s"); timerLabel.setFont(new Font("Consolas",Font.BOLD,24)); timerLabel.setForeground(Color.YELLOW); timerPanel.add(timerLabel);
+        panel.add(timerPanel);
+
+        JLabel qLabel = new JLabel("<html>Q" + (currentQuestion + 1) + ": " + questions[currentQuestion][0] + "</html>");
+        qLabel.setFont(new Font("Consolas", Font.BOLD, 30)); qLabel.setForeground(Color.WHITE);
+        qLabel.setBounds(100, 100, 1500, 80); panel.add(qLabel);
+
+        String[] options = {questions[currentQuestion][1], questions[currentQuestion][2], questions[currentQuestion][3], questions[currentQuestion][4]};
+        int y=250;
+        for(String opt:options){
+            JButton btn=new JButton(opt); btn.setBounds(500,y,500,50); styleButton(btn); btn.setFont(new Font("Consolas",Font.BOLD,25));
+            btn.addActionListener(e->{ if(btn.getText().equals(questions[currentQuestion][5])) score++; currentQuestion++; timer.stop(); loadQuizScreen();});
+            panel.add(btn); y+=100;
+        }
+
+        JButton nextBtn = new JButton("Next"); nextBtn.setBounds(1200,700,150,50); styleButton(nextBtn); nextBtn.setFont(new Font("Consolas",Font.BOLD,22));
+        nextBtn.addActionListener(e->{ currentQuestion++; timer.stop(); loadQuizScreen();}); panel.add(nextBtn);
+
+        add(panel); revalidate(); repaint();
+
+        timer = new javax.swing.Timer(1000,e->{
+            timeLeft--; timerLabel.setText(timeLeft+"s");
+            if(timeLeft<=5) timerLabel.setForeground(timerLabel.getForeground()==Color.YELLOW?Color.RED:Color.YELLOW);
+            if(timeLeft<=0){ Toolkit.getDefaultToolkit().beep(); JOptionPane.showMessageDialog(this,"Time's up!"); currentQuestion++; timer.stop(); loadQuizScreen();}
+        });
+        timer.start();
+    }
+
+    void showResult(){
+        getContentPane().removeAll();
+        ConfettiPanel panel=new ConfettiPanel(400,getWidth(),getHeight()); panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc=new GridBagConstraints(); gbc.insets=new Insets(20,20,20,20);
+
+        JLabel resultLabel=new JLabel(playerName+" Your Score: "+score+"/"+questions.length,SwingConstants.CENTER);
+        resultLabel.setFont(new Font("Consolas",Font.BOLD,70)); resultLabel.setForeground(new Color(0,0,139));
+        gbc.gridx=0; gbc.gridy=0; panel.add(resultLabel,gbc);
+
+        JLabel msg=new JLabel("",SwingConstants.CENTER); msg.setFont(new Font("Consolas",Font.BOLD,50));
+        if(score>=3){ msg.setText("Congratulations! You Won!"); msg.setForeground(Color.GREEN.darker()); }
+        else{ msg.setText("Oops! Better Luck Next Time!"); msg.setForeground(Color.RED); }
+        gbc.gridy=1; panel.add(msg,gbc);
+
+        JButton restartBtn=new JButton("Restart Quiz"); styleButton(restartBtn); restartBtn.setFont(new Font("Consolas",Font.BOLD,50));
+        gbc.gridy=2; restartBtn.addActionListener(e->showNamePage()); panel.add(restartBtn,gbc);
+
+        add(panel); revalidate(); repaint();
+    }
+
+    void styleButton(JButton btn){ btn.setBackground(new Color(0,0,128)); btn.setForeground(Color.WHITE); btn.setFocusPainted(false); }
+
+    public static void main(String[] args){ SwingUtilities.invokeLater(()->new MultiLangQuizGame()); }
+}
